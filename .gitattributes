@@ -1,0 +1,4 @@
+# Normalise line endings so diffs stay clean across Windows/Android/Linux.
+* text=auto eol=lf
+
+*.png binary

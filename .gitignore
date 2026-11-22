@@ -1,0 +1,15 @@
+# deps (only needed for the optional e2e test)
+node_modules/
+
+# test + tooling debris
+*.tmp.mjs
+tests/*.log
+/tmp/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.vscode/
+.idea/

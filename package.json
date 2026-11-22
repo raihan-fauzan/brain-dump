@@ -1,0 +1,12 @@
+{
+  "name": "brain-dump",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Low-friction brain dump capture with LLM-assisted task extraction.",
+  "scripts": {
+    "serve": "node scripts/serve.js",
+    "test": "node --test \"tests/*.test.js\"",
+    "test:e2e": "node tests/e2e.smoke.mjs"
+  }
+}

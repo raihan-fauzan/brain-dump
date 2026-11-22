@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Brain Dump</title>
+<meta name="description" content="Low-friction brain dump capture with LLM-assisted task extraction.">
+<meta name="theme-color" content="#14161a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button class="brand" id="nav-home" type="button">Brain Dump</button>
+  <nav class="topnav">
+    <button type="button" data-nav="notes" id="nav-notes">Notes</button>
+    <button type="button" data-nav="tasks" id="nav-tasks">Tasks <span class="count" id="task-count" hidden>0</span></button>
+    <button type="button" data-nav="settings" id="nav-settings">Settings</button>
+  </nav>
+</header>
+
+<main id="main">
+
+  <!-- HOME -->
+  <section class="view" id="view-home">
+    <div class="capture">
+      <label class="sr-only" for="dump-input">Brain dump</label>
+      <textarea id="dump-input" rows="5" placeholder="Dump it here. Messy is fine." autocomplete="off" spellcheck="true"></textarea>
+      <div class="capture-actions">
+        <span class="hint" id="save-hint">Ctrl+Enter to save</span>
+        <button type="button" class="primary" id="save-btn">Save</button>
+      </div>
+    </div>
+
+    <div class="list-head">
+      <h2>Recent</h2>
+      <div class="list-head-actions">
+        <button type="button" class="ghost small" id="batch-btn" hidden>Process all</button>
+        <span class="muted" id="note-count"></span>
+      </div>
+    </div>
+    <ul class="notes" id="notes-list"></ul>
+    <p class="empty" id="notes-empty" hidden>Nothing yet. Your dumps will appear here.</p>
+  </section>
+
+  <!-- NOTE DETAIL -->
+  <section class="view" id="view-note" hidden>
+    <button type="button" class="back" id="note-back">&larr; Back</button>
+    <div class="note-head">
+      <h1 id="note-title"></h1>
+      <div class="note-actions">
+        <button type="button" class="primary" id="process-btn">Process</button>
+        <button type="button" class="danger" id="delete-btn">Delete</button>
+      </div>
+    </div>
+    <p class="status" id="note-status" aria-live="polite" hidden></p>
+    <div class="note-body" id="note-body"></div>
+  </section>
+
+  <!-- NOTES + RAW DUMPS -->
+  <section class="view" id="view-notes" hidden>
+    <h1>Notes</h1>
+
+    <div class="filters">
+      <input type="search" id="notes-search" placeholder="Search notes and dumps…" autocomplete="off" aria-label="Search">
+      <select id="notes-range" aria-label="Date range">
+        <option value="all">All time</option>
+        <option value="today">Today</option>
+        <option value="7d">Last 7 days</option>
+        <option value="30d">Last 30 days</option>
+        <option value="month">This month</option>
+        <option value="custom">Custom…</option>
+      </select>
+      <div class="custom-range" id="custom-range" hidden>
+        <input type="date" id="range-from" aria-label="From date">
+        <span class="muted">to</span>
+        <input type="date" id="range-to" aria-label="To date">
+      </div>
+    </div>
+
+    <div class="segmented" role="group" aria-label="What to show">
+      <button type="button" id="mode-notes" data-mode="notes" aria-pressed="true">Reference notes</button>
+      <button type="button" id="mode-raw" data-mode="raw" aria-pressed="false">Raw dumps</button>
+    </div>
+
+    <p class="muted small" id="notes-meta"></p>
+    <div id="notes-groups"></div>
+    <p class="empty" id="notes-view-empty" hidden>Nothing matches those filters.</p>
+  </section>
+
+  <!-- TASKS -->
+  <section class="view" id="view-tasks" hidden>
+    <h1>Open tasks</h1>
+    <p class="muted small" id="tasks-meta"></p>
+    <p class="empty" id="tasks-empty" hidden>No open tasks. Process a note to extract some.</p>
+    <div id="tasks-groups"></div>
+    <details class="done-wrap" id="done-wrap" hidden>
+      <summary>Done <span class="count" id="done-count">0</span></summary>
+      <p class="muted small">Uncheck anything to put it back on the list.</p>
+      <div id="tasks-done"></div>
+    </details>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="view" id="view-settings" hidden>
+    <h1>Settings</h1>
+
+    <form id="settings-form" novalidate>
+      <fieldset>
+        <legend>LLM provider</legend>
+        <p class="muted small">Any OpenAI-compatible endpoint. OpenAI, OpenRouter, Groq, or a local server like Ollama / LM Studio. Your key is stored in this browser only and sent directly to that endpoint.</p>
+
+        <label for="base-url">Base URL</label>
+        <input type="url" id="base-url" placeholder="https://api.openai.com/v1" autocomplete="off" spellcheck="false">
+
+        <label for="model">Model</label>
+        <input type="text" id="model" placeholder="gpt-4o-mini" autocomplete="off" spellcheck="false">
+
+        <label for="api-key">API key</label>
+        <div class="key-row">
+          <input type="password" id="api-key" placeholder="sk-..." autocomplete="off" spellcheck="false">
+          <button type="button" class="ghost" id="toggle-key" aria-label="Show API key">Show</button>
+        </div>
+      </fieldset>
+
+      <div class="form-actions">
+        <button type="submit" class="primary" id="save-settings">Save settings</button>
+        <button type="button" class="ghost" id="test-btn">Test connection</button>
+      </div>
+      <p class="status" id="settings-status" aria-live="polite" hidden></p>
+    </form>
+
+    <fieldset>
+      <legend>Data</legend>
+      <p class="muted small">Notes are plain Markdown files. Export gives you a ZIP you can move to another device or open in any editor. Import reads those ZIPs back in.</p>
+      <div class="form-actions">
+        <button type="button" class="ghost" id="export-btn">Export ZIP</button>
+        <button type="button" class="ghost" id="import-btn">Import ZIP</button>
+        <input type="file" id="import-file" accept=".zip,application/zip" hidden>
+      </div>
+      <p class="status" id="data-status" aria-live="polite" hidden></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Extraction prompt</legend>
+      <p class="muted small">Advanced. Leave empty to use the built-in prompt. It must ask for a “## Tasks” section of “- [ ]” lines and a “## Notes” section.</p>
+      <textarea id="prompt-text" rows="10" spellcheck="false" placeholder="Built-in default prompt"></textarea>
+      <div class="form-actions">
+        <button type="button" class="primary" id="save-prompt">Save prompt</button>
+        <button type="button" class="ghost" id="reset-prompt">Use default</button>
+      </div>
+      <p class="status" id="prompt-status" aria-live="polite" hidden></p>
+      <details class="prompt-default">
+        <summary>Show the built-in prompt</summary>
+        <pre id="default-prompt"></pre>
+      </details>
+    </fieldset>
+
+    <fieldset>
+      <legend>About</legend>
+      <p class="muted small">Raw dumps are never modified or discarded. LLM output is appended below the original text and can be replaced by processing again.</p>
+    </fieldset>
+  </section>
+</main>
+
+<div class="toast" id="toast" hidden>
+  <span id="toast-text" role="status" aria-live="polite"></span>
+  <button type="button" class="toast-action" id="toast-action" hidden>Undo</button>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="modal" id="preview-modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="preview-title">
+    <h2 id="preview-title">Review output</h2>
+    <p class="muted small" id="preview-progress" hidden></p>
+    <p class="muted small">This will be appended below your original dump. Edit anything that looks wrong.</p>
+    <textarea id="preview-text" rows="10" spellcheck="false"></textarea>
+    <div class="modal-actions">
+      <button type="button" class="ghost" id="preview-cancel">Cancel</button>
+      <button type="button" class="primary" id="preview-accept">Accept</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
