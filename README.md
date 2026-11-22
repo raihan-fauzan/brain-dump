@@ -8,8 +8,11 @@ Built as a static PWA: no accounts, no server of ours, no build step. Notes live
 in your browser on your device as plain Markdown, and the LLM call goes straight
 from your browser to the provider you choose, with your own API key.
 
+**Live:** <https://raihan-fauzan.github.io/brain-dump/> — open it on a phone or
+tablet and "Add to Home screen".
+
 See [SPEC.md](SPEC.md) for the full locked design decisions, and
-[DEPLOY.md](DEPLOY.md) for putting it on a phone or tablet.
+[DEPLOY.md](DEPLOY.md) for deploying and installing.
 
 ## Run it
 
